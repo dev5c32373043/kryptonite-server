@@ -15,7 +15,7 @@ global.Promise   = bluebird;
 mongoose.Promise = bluebird;
 
 app.use((req, res, next)=> {
-  res.header("Access-Control-Allow-Origin", NODE_ENV == 'production' ? 'https://kryptonite.herokuapp.com' : '*');
+  res.header("Access-Control-Allow-Origin", NODE_ENV == 'production' ? 'https://kryptonite-011101.herokuapp.com' : '*');
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS")
   res.setHeader('X-Powered-By', 'pickyDude')
