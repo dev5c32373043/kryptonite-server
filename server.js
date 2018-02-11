@@ -14,8 +14,10 @@ global.Promise   = bluebird;
 
 mongoose.Promise = bluebird;
 
+const origin = NODE_ENV == 'production' ? 'https://kryptonite-011101.herokuapp.com' : '*';
+
 app.use((req, res, next)=> {
-  res.header("Access-Control-Allow-Origin", NODE_ENV == 'production' ? 'https://kryptonite-011101.herokuapp.com' : '*');
+  res.header("Access-Control-Allow-Origin", origin);
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS")
   res.setHeader('X-Powered-By', 'pickyDude')
@@ -38,10 +40,10 @@ const database = mongoose.connection;
 database.on('error', console.error.bind(console, 'connection error:'))
 
 database.once('open', ()=>{
-  require('./app/features/currency/scheduled_task').start();
-
   if(NODE_ENV == 'production'){
     if (cluster.isMaster) {
+      require('./app/features/currency/scheduled_task').start();
+      
       console.log(`Master ${process.pid} is running`);
       for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
