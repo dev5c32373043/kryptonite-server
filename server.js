@@ -7,6 +7,8 @@ const cluster      = require('cluster');
 const numCPUs      = require('os').cpus().length;
 const express      = require('express');
 const app          = express();
+const http         = require('http').Server(app);
+const io           = require('socket.io')(http);
 const PORT         = process.env.PORT || 3000;
 
 global.NODE_ENV  = process.env.NODE_ENV || 'development';
@@ -31,7 +33,7 @@ if(NODE_ENV != 'test'){
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-app.use('/api/v1/currency', require('./app/features/currency/router'))
+io.on('connection', (socket)=> require('./app/features/currency/router')(io, socket))
 
 mongoose.connect(config[NODE_ENV].db)
 
@@ -43,7 +45,7 @@ database.once('open', ()=>{
   if(NODE_ENV == 'production'){
     if (cluster.isMaster) {
       require('./app/features/currency/scheduled_task').start();
-      
+
       console.log(`Master ${process.pid} is running`);
       for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
@@ -57,10 +59,10 @@ database.once('open', ()=>{
         }
       })
     } else {
-     app.listen(PORT, ()=> console.log(`Worker ${process.pid} started`))
+     http.listen(PORT, ()=> console.log(`Worker ${process.pid} started`))
    }
   }else{
-    app.listen(PORT, ()=> console.log(`Express listen on ${PORT} port!`))
+    http.listen(PORT, ()=> console.log(`Express listen on ${PORT} port!`))
   }
 })
 
