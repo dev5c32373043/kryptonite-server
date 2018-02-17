@@ -16,6 +16,15 @@ module.exports = (io, socket)=>{
     })
   })
 
+  socket.on('get keys', ()=>{
+    Currency.find({}, 'rank symbol price_usd')
+    .sort('rank')
+    .exec((error, keys)=>{
+      if(error) return socket.emit('error', error)
+      socket.emit('keys received', keys)
+    })
+  })
+
   socket.on('load more', (page)=>{
     Currency.find({})
     .sort('rank')
