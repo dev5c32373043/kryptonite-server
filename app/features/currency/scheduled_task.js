@@ -1,3 +1,4 @@
+const io       = require('socket.io');
 const cron     = require('node-cron');
 const request  = require('request');
 const Currency = require('../../models/currency');
@@ -12,6 +13,7 @@ const task = cron.schedule('*/5 * * * *', ()=>{
       if(error) return console.error(error);
       if(count){
         const currencies = Currency.find({}).cursor();
+        let updatedCurrecies = [];
         currencies.on('data', (currency)=>{
           const receivedCurrency = body.filter((item)=> currency.id == item.id)[0];
           if(receivedCurrency){
@@ -19,8 +21,14 @@ const task = cron.schedule('*/5 * * * *', ()=>{
               currency.set(receivedCurrency)
               currency.save((error, result)=>{
                 if(error) return console.error(error)
+                updatedCurrecies.push(currency)
               })
             }
+          }
+        })
+        currencies.on('close', ()=>{
+          if(updatedCurrecies.length){
+            io.emit('currencies updated', updatedCurrecies)
           }
         })
       }else{
